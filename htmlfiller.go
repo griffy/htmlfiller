@@ -127,7 +127,7 @@ func FillElement(html_ string, name, val string) (newHtml string) {
 				    }
                 }
             case "input":
-                handleInputElement(token, name, val)
+                token = handleInputElement(token, name, val)
             case "span":
                 if hasID(token, name) {
                     // the next token that is a TextToken
@@ -152,7 +152,7 @@ func FillElement(html_ string, name, val string) (newHtml string) {
         case html.SelfClosingTagToken:
 	        switch elemName {
             case "input":
-                handleInputElement(token, name, val)
+                token = handleInputElement(token, name, val)
             }
         case html.TextToken:
             if fillNextText {
@@ -168,7 +168,7 @@ func FillElement(html_ string, name, val string) (newHtml string) {
 	return newHtml
 }
 
-func handleInputElement(token html.Token, name, val string) { 
+func handleInputElement(token html.Token, name, val string) html.Token { 
     if hasName(token, name) {
         if hasType(token, "checkbox") || hasType(token, "radio") {
             // checkboxes and radio buttons are special,
@@ -185,4 +185,5 @@ func handleInputElement(token html.Token, name, val string) {
             setValue(&token, val)
         }
     }
+    return token
 }
