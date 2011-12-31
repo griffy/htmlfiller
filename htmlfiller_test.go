@@ -33,6 +33,23 @@ func (s *S) TestFillElement(c *C) {
     expHtml = `<input name="test" value="val"></input>`
     c.Check(obsHtml, Equals, expHtml)
 
+    html = `<input type="checkbox" name="test" value="val"/>`
+    obsHtml = htmlfiller.FillElement(html, "test", "val")
+    expHtml = `<input type="checkbox" name="test" value="val" checked="checked"/>`
+    c.Check(obsHtml, Equals, expHtml)
+    
+    html = `<input name="test"></input>`
+    obsHtml = htmlfiller.FillElement(html, "test", "val")
+    expHtml = `<input name="test" value="val"></input>`
+    c.Check(obsHtml, Equals, expHtml)
+
+    html = `<input name="test" value="old"></input>`
+    obsHtml = htmlfiller.FillElement(html, "test", "val")
+    expHtml = `<input name="test" value="val"></input>`
+    c.Check(obsHtml, Equals, expHtml)
+
+
+
     html = `<select name="test">
     <option value="opt1">Option 1</option>
     <option value="opt2">Option 2</option>
