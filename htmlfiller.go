@@ -86,56 +86,71 @@ func FillElement(html_ string, name, val string) (newHtml string) {
 		tokenizer.Next()
 		token := tokenizer.Token()
 		elemName := token.Data
-		if token.Type == html.ErrorToken {
-			// finished parsing
-			break
-		}
-
-		if token.Type == html.StartTagToken {
-			if elemName == "span" && hasNameMatching(token, name) {
-				// the next token that is a TextToken
-				// should be filled with the value
-				fillNextText = true
-			} else if elemName == "textarea" && hasNameMatching(token, name) {
-				fillNextText = true
-			} else if elemName == "select" && hasNameMatching(token, name) {
-                if inSelect {
-                    inSelect = false
-                } else {
+        if token.Type == html.ErrorToken {
+            // finished parsing the html
+            break
+        }
+        switch token.Type {
+        case html.StartTagToken:
+            switch elemName {
+            case "span", "textarea":
+                if hasNameMatching(token, name) {
+				    // the next token that is a TextToken
+				    // should be filled with the value
+				    fillNextText = true
+                }
+            case "select":
+			    if hasNameMatching(token, name) {
 				    // we are in the select tag, so we must
-				    // search for the right <option> tag now
+				    // search for the right <option> element now
 				    inSelect = true
                 }
-			} else if elemName == "option" && inSelect {
-				setNotSelected(&token)
-                if hasValueMatching(token, val) {
-					// this option tag has val we want to set
-					// as the default, so make it selected and
-					// end our search
-					setSelected(&token)
-				}
-			} else if elemName == "input" && hasNameMatching(token, name) {
-				setValue(&token, val)
-			}
-		} else if token.Type == html.EndTagToken {
-			if elemName == "span" && fillNextText {
-				// there was no text token, so manually
-				// insert the value
-				newHtml += val
-				fillNextText = false
-			} else if elemName == "textarea" && fillNextText {
-				newHtml += val
-				fillNextText = false	
-			}
-		} else if token.Type == html.SelfClosingTagToken {
-			if elemName == "input" && hasNameMatching(token, name) {
-				setValue(&token, val)
-			}
-		} else if token.Type == html.TextToken && fillNextText {
-			token.Data = val
-			fillNextText = false
-		}
+            case "option":
+			    if inSelect {
+				    setNotSelected(&token)
+                    if hasValueMatching(token, val) {
+					    // this option element we want to set
+					    // as the default, so make it selected and
+					    // end our search
+					    setSelected(&token)
+				    }
+                }
+            case "input":
+                if hasNameMatching(token, name) {
+				    setValue(&token, val)
+			    }
+            }
+        case html.EndTagToken:
+            switch elemName {
+            case "span", "textarea":
+                if fillNextText {
+				    // there was no text token, so manually
+				    // insert the value
+				    newHtml += val
+				    fillNextText = false
+                }
+            case "select":
+			    if inSelect {
+                    inSelect = false
+                }
+            }
+        case html.SelfClosingTagToken:
+	        switch elemName {
+            case "input":
+                if hasNameMatching(token, name) {
+				    setValue(&token, val)
+			    }
+            }
+        case html.TextToken:
+            if fillNextText {
+                // fill in the text token's contents with the val
+			    token.Data = val
+			    fillNextText = false
+		    }
+        }
+
 		newHtml += token.String()
 	}
+
 	return newHtml
 }
