@@ -12,24 +12,24 @@ func Test(t *testing.T) { TestingT(t) }
 type S struct {}
 var _ = Suite(&S{})
 
-func (s *S) TestFillField(c *C) {
+func (s *S) TestFillElement(c *C) {
     html := `<input name="test"/>`
-    obsHtml := htmlfiller.FillField(html, "test", "val")
+    obsHtml := htmlfiller.FillElement(html, "test", "val")
     expHtml := `<input name="test" value="val"/>`
     c.Check(obsHtml, Equals, expHtml)
     
     html = `<input name="test" value="old"/>`
-    obsHtml = htmlfiller.FillField(html, "test", "val")
+    obsHtml = htmlfiller.FillElement(html, "test", "val")
     expHtml = `<input name="test" value="val"/>`
     c.Check(obsHtml, Equals, expHtml)
     
     html = `<input name="test"></input>`
-    obsHtml = htmlfiller.FillField(html, "test", "val")
+    obsHtml = htmlfiller.FillElement(html, "test", "val")
     expHtml = `<input name="test" value="val"></input>`
     c.Check(obsHtml, Equals, expHtml)
 
     html = `<input name="test" value="old"></input>`
-    obsHtml = htmlfiller.FillField(html, "test", "val")
+    obsHtml = htmlfiller.FillElement(html, "test", "val")
     expHtml = `<input name="test" value="val"></input>`
     c.Check(obsHtml, Equals, expHtml)
 
@@ -38,7 +38,7 @@ func (s *S) TestFillField(c *C) {
     <option value="opt2">Option 2</option>
     <option value="opt3">Option 3</option>
     </select>`
-    obsHtml = htmlfiller.FillField(html, "test", "opt2")
+    obsHtml = htmlfiller.FillElement(html, "test", "opt2")
     expHtml = `<select name="test">
     <option value="opt1">Option 1</option>
     <option value="opt2" selected="selected">Option 2</option>
@@ -47,22 +47,22 @@ func (s *S) TestFillField(c *C) {
     c.Check(obsHtml, Equals, expHtml)
 
     html = `<textarea name="test"></textarea>`
-    obsHtml = htmlfiller.FillField(html, "test", "val")
+    obsHtml = htmlfiller.FillElement(html, "test", "val")
     expHtml = `<textarea name="test">val</textarea>`
     c.Check(obsHtml, Equals, expHtml)
 
     html = `<textarea name="test">old</textarea>`
-    obsHtml = htmlfiller.FillField(html, "test", "val")
+    obsHtml = htmlfiller.FillElement(html, "test", "val")
     expHtml = `<textarea name="test">val</textarea>`
     c.Check(obsHtml, Equals, expHtml)
 
     html = `<span name="test"></span>`
-    obsHtml = htmlfiller.FillField(html, "test", "val")
+    obsHtml = htmlfiller.FillElement(html, "test", "val")
     expHtml = `<span name="test">val</span>`
     c.Check(obsHtml, Equals, expHtml)
 
     html = `<span name="test">old</span>`
-    obsHtml = htmlfiller.FillField(html, "test", "val")
+    obsHtml = htmlfiller.FillElement(html, "test", "val")
     expHtml = `<span name="test">val</span>`
     c.Check(obsHtml, Equals, expHtml)
 }

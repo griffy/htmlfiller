@@ -7,11 +7,11 @@ import (
 
 func Fill(html_ string, vals map[string]string, errors ...map[string]string) string {
 	for name, val := range vals {
-		html_ = FillField(html_, name, val)
+		html_ = FillElement(html_, name, val)
 	}
 	if len(errors) > 0 {
 		for name, error := range errors[0] {
-			html_ = FillField(html_, name + "_error", error)
+			html_ = FillElement(html_, name + "_error", error)
 		}
 	}
 	return html_
@@ -77,7 +77,7 @@ func setNotSelected(token *html.Token) {
     }
 }
 
-func FillField(html_ string, name, val string) (newHtml string) {
+func FillElement(html_ string, name, val string) (newHtml string) {
 	reader := strings.NewReader(html_)
 	tokenizer := html.NewTokenizer(reader)
 	fillNextText := false
