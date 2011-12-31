@@ -17,7 +17,7 @@ func Fill(html_ string, vals map[string]string, errors ...map[string]string) str
 	return html_
 }
 
-func hasMatching(token html.Token, attrName, val string) bool {
+func hasMatchingAttr(token html.Token, attrName, val string) bool {
     for _, attr := range token.Attr {
         if attr.Key == attrName {
             return attr.Val == val
@@ -26,58 +26,66 @@ func hasMatching(token html.Token, attrName, val string) bool {
     return false
 }
 
-func hasIDMatching(token html.Token, id string) bool {
-    return hasMatching(token, "id", id)
+func hasID(token html.Token, id string) bool {
+    return hasMatchingAttr(token, "id", id)
 }
 
-func hasNameMatching(token html.Token, name string) bool {
-    return hasMatching(token, "name", name)
+func hasName(token html.Token, name string) bool {
+    return hasMatchingAttr(token, "name", name)
 }
 
-func hasValueMatching(token html.Token, val string) bool {
-    return hasMatching(token, "value", val)
+func hasValue(token html.Token, val string) bool {
+    return hasMatchingAttr(token, "value", val)
+}
+
+func hasType(token html.Token, type_ string) bool {
+    return hasMatchingAttr(token, "type", type_)
+}
+
+func setAttr(token *html.Token, attrName, val string) {
+    for i, attr := range token.Attr {
+        if attr.Key == attrName {
+            // the token (element)'s attr already exists,
+            // so give it the value
+            attr.Val = val
+            // and add the modified attr back into the token
+            token.Attr[i] = attr
+            return
+        }
+    }
+    // if we made it down here, the attribute does not exist 
+    // in the token, so we must create it and set the val
+    token.Attr = append(token.Attr, html.Attribute{attrName, val})
 }
 
 func setValue(token *html.Token, val string) {
-	for i, attr := range token.Attr {
-		if attr.Key == "value" {
-            // the attribute already exists, so give it the value
-			attr.Val = val
-            // and add the modified Attr back into the array
-            token.Attr[i] = attr
-			return
-		} 
-	}
-	// if we made it down here, the attribute "value" does
-	// not exist, so we must create it
-	token.Attr = append(token.Attr, html.Attribute{"value", val})
+    setAttr(token, "value", val)
 }
 
 func setSelected(token *html.Token) {
-    for _, attr := range token.Attr {
-        if attr.Key == "selected" {
-            if attr.Val == "selected" {
-                // it already is selected, so our work is done
-                return
-            } else {
-                // it somehow had the tag, but not the value, so set it
-                attr.Val = "selected"
-                return
-            }
-        }
-    }
-    // the attribute didn't exist, so create it
-	token.Attr = append(token.Attr, html.Attribute{"selected", "selected"})
+    setAttr(token, "selected", "selected")
 }
 
-func setNotSelected(token *html.Token) {
+func setChecked(token *html.Token) {
+    setAttr(token, "checked", "checked")
+}
+
+func removeAttr(token *html.Token, attrName string) {
     for i, attr := range token.Attr {
-        if attr.Key == "selected" {
-            // remove this attribute
+        if attr.Key == attrName {
+            // remove the attribute by slicing it out of the list
             token.Attr = append(token.Attr[:i], token.Attr[i+1:]...)
             break
         }
     }
+}
+
+func removeSelected(token *html.Token) {
+    removeAttr(token, "selected")
+}
+
+func removeChecked(token *html.Token) {
+    removeAttr(token, "checked")
 }
 
 func FillElement(html_ string, name, val string) (newHtml string) {
@@ -97,21 +105,21 @@ func FillElement(html_ string, name, val string) (newHtml string) {
         case html.StartTagToken:
             switch elemName {
             case "textarea":
-                if hasNameMatching(token, name) {
+                if hasName(token, name) {
 				    // the next token that is a TextToken
 				    // should be filled with the value
 				    fillNextText = true
                 }
             case "select":
-			    if hasNameMatching(token, name) {
+			    if hasName(token, name) {
 				    // we are in the select tag, so we must
 				    // search for the right <option> element now
 				    inSelect = true
                 }
             case "option":
 			    if inSelect {
-				    setNotSelected(&token)
-                    if hasValueMatching(token, val) {
+				    removeSelected(&token)
+                    if hasValue(token, val) {
 					    // this option element we want to set
 					    // as the default, so make it selected and
 					    // end our search
@@ -119,11 +127,9 @@ func FillElement(html_ string, name, val string) (newHtml string) {
 				    }
                 }
             case "input":
-                if hasNameMatching(token, name) {
-				    setValue(&token, val)
-			    }
+                handleInputElement(token, name, val)
             case "span":
-                if hasIDMatching(token, name) {
+                if hasID(token, name) {
                     // the next token that is a TextToken
                     // should be filled with the value
                     fillNextText = true
@@ -146,9 +152,7 @@ func FillElement(html_ string, name, val string) (newHtml string) {
         case html.SelfClosingTagToken:
 	        switch elemName {
             case "input":
-                if hasNameMatching(token, name) {
-				    setValue(&token, val)
-			    }
+                handleInputElement(token, name, val)
             }
         case html.TextToken:
             if fillNextText {
@@ -162,4 +166,23 @@ func FillElement(html_ string, name, val string) (newHtml string) {
 	}
 
 	return newHtml
+}
+
+func handleInputElement(token html.Token, name, val string) { 
+    if hasName(token, name) {
+        if hasType(token, "checkbox") || hasType(token, "radio") {
+            // checkboxes and radio buttons are special,
+            // so we must add a checked attribute to one
+            // that has the given val
+            if hasValue(token, val) {
+                setChecked(&token)
+            } else {
+                // remove the checked attribute
+                // if it does not have the given val
+                removeChecked(&token)
+            }
+        } else {
+            setValue(&token, val)
+        }
+    }
 }
