@@ -177,9 +177,13 @@ func handleInputElement(token html.Token, name, val string) html.Token {
             if hasValue(token, val) {
                 setChecked(&token)
             } else {
-                // remove the checked attribute
-                // if it does not have the given val
-                removeChecked(&token)
+                if hasType(token, "radio") {
+                    // since a radio group can only have
+                    // one selection,
+                    // remove the checked attribute
+                    // if it does not have the given val
+                    removeChecked(&token)
+                }
             }
         } else {
             setValue(&token, val)
