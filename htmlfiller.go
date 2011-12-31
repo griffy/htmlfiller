@@ -17,7 +17,7 @@ func Fill(html_ string, vals map[string]string, errors ...map[string]string) str
 	return html_
 }
 
-func hasName(token html.Token, name string) bool {
+func hasNameMatching(token html.Token, name string) bool {
 	for _, attr := range token.Attr {
 		if attr.Key == "name" {
 			return attr.Val == name
@@ -26,7 +26,7 @@ func hasName(token html.Token, name string) bool {
 	return false
 }
 
-func hasValue(token html.Token, val string) bool {
+func hasValueMatching(token html.Token, val string) bool {
 	for _, attr := range token.Attr {
 		if attr.Key == "value" {
 			return attr.Val == val
@@ -36,9 +36,12 @@ func hasValue(token html.Token, val string) bool {
 }
 
 func setValue(token *html.Token, val string) {
-	for _, attr := range token.Attr {
+	for i, attr := range token.Attr {
 		if attr.Key == "value" {
+            // the attribute already exists, so give it the value
 			attr.Val = val
+            // and add the modified Attr back into the array
+            token.Attr[i] = attr
 			return
 		} 
 	}
@@ -48,7 +51,30 @@ func setValue(token *html.Token, val string) {
 }
 
 func setSelected(token *html.Token) {
+    for _, attr := range token.Attr {
+        if attr.Key == "selected" {
+            if attr.Val == "selected" {
+                // it already is selected, so our work is done
+                return
+            } else {
+                // it somehow had the tag, but not the value, so set it
+                attr.Val = "selected"
+                return
+            }
+        }
+    }
+    // the attribute didn't exist, so create it
 	token.Attr = append(token.Attr, html.Attribute{"selected", "selected"})
+}
+
+func setNotSelected(token *html.Token) {
+    for i, attr := range token.Attr {
+        if attr.Key == "selected" {
+            // remove this attribute
+            token.Attr = append(token.Attr[:i], token.Attr[i+1:]...)
+            break
+        }
+    }
 }
 
 func FillField(html_ string, name, val string) (newHtml string) {
@@ -66,25 +92,29 @@ func FillField(html_ string, name, val string) (newHtml string) {
 		}
 
 		if token.Type == html.StartTagToken {
-			if elemName == "span" && hasName(token, name) {
+			if elemName == "span" && hasNameMatching(token, name) {
 				// the next token that is a TextToken
 				// should be filled with the value
 				fillNextText = true
-			} else if elemName == "textarea" && hasName(token, name) {
+			} else if elemName == "textarea" && hasNameMatching(token, name) {
 				fillNextText = true
-			} else if elemName == "select" && hasName(token, name) {
-				// we are in the select tag, so we must
-				// search for the right <option> tag now
-				inSelect = true
+			} else if elemName == "select" && hasNameMatching(token, name) {
+                if inSelect {
+                    inSelect = false
+                } else {
+				    // we are in the select tag, so we must
+				    // search for the right <option> tag now
+				    inSelect = true
+                }
 			} else if elemName == "option" && inSelect {
-				if hasValue(token, val) {
+				setNotSelected(&token)
+                if hasValueMatching(token, val) {
 					// this option tag has val we want to set
 					// as the default, so make it selected and
 					// end our search
 					setSelected(&token)
-					inSelect = false
 				}
-			} else if elemName == "input" && hasName(token, name) {
+			} else if elemName == "input" && hasNameMatching(token, name) {
 				setValue(&token, val)
 			}
 		} else if token.Type == html.EndTagToken {
@@ -98,7 +128,7 @@ func FillField(html_ string, name, val string) (newHtml string) {
 				fillNextText = false	
 			}
 		} else if token.Type == html.SelfClosingTagToken {
-			if elemName == "input" && hasName(token, name) {
+			if elemName == "input" && hasNameMatching(token, name) {
 				setValue(&token, val)
 			}
 		} else if token.Type == html.TextToken && fillNextText {
