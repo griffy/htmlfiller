@@ -21,6 +21,7 @@ Usage:
     filledHtml := htmlfiller.Fill(html, userVals, errors)
 
 filledHtml should look like so:
+
     <form action="">
         <span name="city_error">That is an invalid city. EXTERMINATE!</span>
         <input type="text" name="city" value="Boom Town"/>
