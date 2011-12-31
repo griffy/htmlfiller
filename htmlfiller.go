@@ -17,22 +17,25 @@ func Fill(html_ string, vals map[string]string, errors ...map[string]string) str
 	return html_
 }
 
+func hasMatching(token html.Token, attrName, val string) bool {
+    for _, attr := range token.Attr {
+        if attr.Key == attrName {
+            return attr.Val == val
+        }
+    }
+    return false
+}
+
+func hasIDMatching(token html.Token, id string) bool {
+    return hasMatching(token, "id", id)
+}
+
 func hasNameMatching(token html.Token, name string) bool {
-	for _, attr := range token.Attr {
-		if attr.Key == "name" {
-			return attr.Val == name
-		} 
-	}
-	return false
+    return hasMatching(token, "name", name)
 }
 
 func hasValueMatching(token html.Token, val string) bool {
-	for _, attr := range token.Attr {
-		if attr.Key == "value" {
-			return attr.Val == val
-		} 
-	}
-	return false
+    return hasMatching(token, "value", val)
 }
 
 func setValue(token *html.Token, val string) {
@@ -93,7 +96,7 @@ func FillElement(html_ string, name, val string) (newHtml string) {
         switch token.Type {
         case html.StartTagToken:
             switch elemName {
-            case "span", "textarea":
+            case "textarea":
                 if hasNameMatching(token, name) {
 				    // the next token that is a TextToken
 				    // should be filled with the value
@@ -119,10 +122,16 @@ func FillElement(html_ string, name, val string) (newHtml string) {
                 if hasNameMatching(token, name) {
 				    setValue(&token, val)
 			    }
+            case "span":
+                if hasIDMatching(token, name) {
+                    // the next token that is a TextToken
+                    // should be filled with the value
+                    fillNextText = true
+                }
             }
         case html.EndTagToken:
             switch elemName {
-            case "span", "textarea":
+            case "textarea", "span":
                 if fillNextText {
 				    // there was no text token, so manually
 				    // insert the value
