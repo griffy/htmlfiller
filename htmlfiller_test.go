@@ -56,14 +56,14 @@ func (s *S) TestFillElement(c *C) {
     expHtml = `<textarea name="test">val</textarea>`
     c.Check(obsHtml, Equals, expHtml)
 
-    html = `<span name="test"></span>`
+    html = `<span id="test"></span>`
     obsHtml = htmlfiller.FillElement(html, "test", "val")
-    expHtml = `<span name="test">val</span>`
+    expHtml = `<span id="test">val</span>`
     c.Check(obsHtml, Equals, expHtml)
 
-    html = `<span name="test">old</span>`
+    html = `<span id="test">old</span>`
     obsHtml = htmlfiller.FillElement(html, "test", "val")
-    expHtml = `<span name="test">val</span>`
+    expHtml = `<span id="test">val</span>`
     c.Check(obsHtml, Equals, expHtml)
 }
 
@@ -73,51 +73,51 @@ func (s *S) TestFill(c *C) {
     defaultVals["elem2"] = "opt2"
     defaultVals["elem3"] = "val"
     html := `<form action="">
-    <span name="elem1_error"></span>
+    <span class="error_message" id="elem1_error"></span>
     <input type="text" name="elem1"/>
-    <span name="elem2_error"></span>
+    <span class="error_message" id="elem2_error"></span>
     <select name="elem2">
     <option value="opt1">Option 1</option>
     <option value="opt2">Option 2</option>
     </select>
-    <span name="elem3_error"></span>
+    <span class="error_message" id="elem3_error"></span>
     <textarea name="elem3"></textarea>
     </form>`
     obsHtml := htmlfiller.Fill(html, defaultVals)
     expHtml := `<form action="">
-    <span name="elem1_error"></span>
+    <span class="error_message" id="elem1_error"></span>
     <input type="text" name="elem1" value="val"/>
-    <span name="elem2_error"></span>
+    <span class="error_message" id="elem2_error"></span>
     <select name="elem2">
     <option value="opt1">Option 1</option>
     <option value="opt2" selected="selected">Option 2</option>
     </select>
-    <span name="elem3_error"></span>
+    <span class="error_message" id="elem3_error"></span>
     <textarea name="elem3">val</textarea>
     </form>`
     c.Check(obsHtml, Equals, expHtml)
 
     html = `<form action="">
-    <span name="elem1_error"></span>
+    <span class="error_message" id="elem1_error"></span>
     <input type="text" name="elem1" value="old"/>
-    <span name="elem2_error"></span>
+    <span class="error_message" id="elem2_error"></span>
     <select name="elem2">
     <option value="opt1" selected="selected">Option 1</option>
     <option value="opt2">Option 2</option>
     </select>
-    <span name="elem3_error"></span>
+    <span class="error_message" id="elem3_error"></span>
     <textarea name="elem3">old</textarea>
     </form>`
     obsHtml = htmlfiller.Fill(html, defaultVals)
     expHtml = `<form action="">
-    <span name="elem1_error"></span>
+    <span class="error_message" id="elem1_error"></span>
     <input type="text" name="elem1" value="val"/>
-    <span name="elem2_error"></span>
+    <span class="error_message" id="elem2_error"></span>
     <select name="elem2">
     <option value="opt1">Option 1</option>
     <option value="opt2" selected="selected">Option 2</option>
     </select>
-    <span name="elem3_error"></span>
+    <span class="error_message" id="elem3_error"></span>
     <textarea name="elem3">val</textarea>
     </form>`
     c.Check(obsHtml, Equals, expHtml)
@@ -127,51 +127,51 @@ func (s *S) TestFill(c *C) {
     errors["elem2"] = "Invalid option"
     errors["elem3"] = "Invalid value"
     html = `<form action="">
-    <span name="elem1_error"></span>
+    <span class="error_message" id="elem1_error"></span>
     <input type="text" name="elem1"/>
-    <span name="elem2_error"></span>
+    <span class="error_message" id="elem2_error"></span>
     <select name="elem2">
     <option value="opt1">Option 1</option>
     <option value="opt2">Option 2</option>
     </select>
-    <span name="elem3_error"></span>
+    <span class="error_message" id="elem3_error"></span>
     <textarea name="elem3"></textarea>
     </form>`
     obsHtml = htmlfiller.Fill(html, defaultVals, errors)
     expHtml = `<form action="">
-    <span name="elem1_error">Invalid value</span>
+    <span class="error_message" id="elem1_error">Invalid value</span>
     <input type="text" name="elem1" value="val"/>
-    <span name="elem2_error">Invalid option</span>
+    <span class="error_message" id="elem2_error">Invalid option</span>
     <select name="elem2">
     <option value="opt1">Option 1</option>
     <option value="opt2" selected="selected">Option 2</option>
     </select>
-    <span name="elem3_error">Invalid value</span>
+    <span class="error_message" id="elem3_error">Invalid value</span>
     <textarea name="elem3">val</textarea>
     </form>`
     c.Check(obsHtml, Equals, expHtml)
 
     html = `<form action="">
-    <span name="elem1_error"></span>
+    <span class="error_message" id="elem1_error"></span>
     <input type="text" name="elem1" value="old"/>
-    <span name="elem2_error"></span>
+    <span class="error_message" id="elem2_error"></span>
     <select name="elem2">
     <option value="opt1" selected="selected">Option 1</option>
     <option value="opt2">Option 2</option>
     </select>
-    <span name="elem3_error"></span>
+    <span class="error_message" id="elem3_error"></span>
     <textarea name="elem3">old</textarea>
     </form>`
     obsHtml = htmlfiller.Fill(html, defaultVals, errors)
     expHtml = `<form action="">
-    <span name="elem1_error">Invalid value</span>
+    <span class="error_message" id="elem1_error">Invalid value</span>
     <input type="text" name="elem1" value="val"/>
-    <span name="elem2_error">Invalid option</span>
+    <span class="error_message" id="elem2_error">Invalid option</span>
     <select name="elem2">
     <option value="opt1">Option 1</option>
     <option value="opt2" selected="selected">Option 2</option>
     </select>
-    <span name="elem3_error">Invalid value</span>
+    <span class="error_message" id="elem3_error">Invalid value</span>
     <textarea name="elem3">val</textarea>
     </form>`
     c.Check(obsHtml, Equals, expHtml)
