@@ -1,8 +1,16 @@
-htmlfiller (for Go) fills in html forms with default values and errors a la Ian Bicking's htmlfill for Python. Currently, it supports input, select, and textarea elements. Specifying errors is optional.
+## htmlfiller
 
-There are two public functions: FillElement and Fill. The latter, when passed a map of names and values, will attempt to fill in the appropriate form elements. If a second parameter (a map of names with error messages) is passed to it, it will fill in all span elements of the id "#{name}_error" with their corresponding error messages. This allows for a custom error message class to be used for the span elements as a whole while still allowing for handling of specific elements.
+htmlfiller fills in html forms with default values and errors a la Ian Bicking's htmlfill for Python. Currently, it supports input, select, and textarea elements. Specifying errors is optional.
 
-Usage:
+### How is it used?
+There are two public functions: 
+
+    FillElement(html, name, val string) string
+    Fill(html string, vals map[string]string, errors ...map[string]string) string
+    
+The latter, when passed a map of element names and values, will attempt to fill in the appropriate form elements. If a second parameter (a map of names with error messages) is passed to it, it will fill in all span elements of the id "#{name}_error" with their corresponding error messages.
+
+### Example Usage:
 
     userVals := make(map[string]string)
     userVals["city"] = "Boom Town"
