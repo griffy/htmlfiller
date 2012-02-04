@@ -1,7 +1,7 @@
 package htmlfiller
 
 import (
-	"html"
+	"exp/html"
 	"strings"
 )
 
@@ -55,7 +55,7 @@ func setAttr(token *html.Token, attrName, val string) {
     }
     // if we made it down here, the attribute does not exist 
     // in the token, so we must create it and set the val
-    token.Attr = append(token.Attr, html.Attribute{attrName, val})
+    token.Attr = append(token.Attr, html.Attribute{"", attrName, val})
 }
 
 func setValue(token *html.Token, val string) {
