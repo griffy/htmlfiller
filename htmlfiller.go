@@ -1,28 +1,85 @@
+/*
+Fills in html forms with default values and errors a la Ian Bicking's htmlfill for Python
+
+    userVals := make(map[string]string)
+    userVals["city"] = "Boom Town"
+    userVals["state"] = "Pennsylvania"
+
+    errors := make(map[string]string)
+    errors["city"] = "That is an invalid city. EXTERMINATE!"
+
+    html := `<form action="">
+                <span class="error_message" id="city_error"></span>
+                <input type="text" name="city" />
+                <span class="error_message" id="state_error"></span>
+                <input type="text" name="state" />
+             </form>`
+
+    filledHtml := htmlfiller.Fill(html, userVals, errors)
+*/
+
 package htmlfiller
 
 import (
 	"bytes"
-	"code.google.com/p/go-html-transform/h5"
+	"errors"
+	"github.com/levigross/exp-html"
 	"strings"
 )
 
-func Fill(html_ string, vals map[string]string, errors ...map[string]string) string {
-	// fill 
-	for name, val := range vals {
-		html_ = FillElement(html_, name, val)
+// Parses the html and injects the given values and errors into their associated form elements
+// Returns the updated html
+func Fill(html_ string, vals map[string]string, errors map[string]string) (string, error) {
+	html_, err := FillValues(html_, vals)
+	if err != nil {
+		return html_, err
 	}
-	if len(errors) > 0 {
-		for name, error := range errors[0] {
-			html_ = FillElement(html_, name+"_error", error)
-		}
-	}
-	return html_
+
+	html_, err = FillErrors(html_, errors)
+	return html_, err
 }
 
-func FillElement(html_ string, name, val string) string {
-	var newHtmlBuffer bytes.Buffer
+// Parses the html and injects the given values into their associated form elements
+// Returns the updated html
+func FillValues(html_ string, vals map[string]string) (string, error) {
+	for elemName, val := range vals {
+		newHtml, err := FillElement(html_, elemName, val)
+		if err != nil {
+			return newHtml, err
+		}
+		html_ = newHtml
+	}
+	return html_, nil
+}
+
+// Parses the html and injects the given errors into their associated form elements
+// Returns the updated html
+func FillErrors(html_ string, errors map[string]string) (string, error) {
+	for elemName, error := range errors {
+		newHtml, err := FillElement(html_, elemName+"_error", error)
+		if err != nil {
+			return newHtml, err
+		}
+		html_ = newHtml
+	}
+	return html_, nil
+}
+
+// Parses the html, searches for the form element, and injects a value into it
+// Returns the updated html
+func FillElement(html_, name, val string) (string, error) {
+	var htmlBuffer bytes.Buffer
+
+	// check for valid html to begin with
+	_, err := html.Parse(strings.NewReader(html_))
+	if err != nil {
+		return html_, errors.New("Failed to parse html")
+	}
+
 	reader := strings.NewReader(html_)
-	tokenizer := h5.NewParser(reader)
+	tokenizer := html.NewTokenizer(reader)
+
+	// iterate through the tokens and fill
 	fillNextText := false
 	inSelect := false
 	for {
@@ -33,6 +90,7 @@ func FillElement(html_ string, name, val string) string {
 			// finished parsing the html
 			break
 		}
+
 		switch token.Type {
 		case html.StartTagToken:
 			switch elemName {
@@ -73,7 +131,7 @@ func FillElement(html_ string, name, val string) string {
 				if fillNextText {
 					// there was no text token, so manually
 					// insert the value
-					newHtml += val
+					htmlBuffer.WriteString(val)
 					fillNextText = false
 				}
 			case "select":
@@ -94,10 +152,10 @@ func FillElement(html_ string, name, val string) string {
 			}
 		}
 
-		newHtmlBuffer.WriteString(token.String())
+		htmlBuffer.WriteString(token.String())
 	}
 
-	return newHtmlBuffer.String()
+	return htmlBuffer.String(), nil
 }
 
 func hasMatchingAttr(token html.Token, attrName, val string) bool {

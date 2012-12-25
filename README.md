@@ -1,14 +1,13 @@
 ## htmlfiller
 
-htmlfiller fills in html forms with default values and errors a la Ian Bicking's htmlfill for Python. Currently, it supports input, select, and textarea elements. Specifying errors is optional.
+htmlfiller fills in html forms with default values and errors a la Ian Bicking's htmlfill for Python. Currently, it supports input, select, and textarea elements.
 
 ### How is it used?
-There are two public functions: 
+We have a few functions, but the most important one is the following: 
 
-    FillElement(html, name, val string) string
-    Fill(html string, vals map[string]string, errors ...map[string]string) string
+    Fill(html string, vals map[string]string, errors map[string]string) string
     
-The latter, when passed a map of element names and values, will attempt to fill in the appropriate form elements. If a second parameter (a map of names with error messages) is passed to it, it will fill in all span elements of the id "#{name}_error" with their corresponding error messages.
+It will take as input an html string and two maps: one mapping form elements to values, the other mapping form elements to error messages. htmlfiller assumes that each form element has a corresponding span element with an id attribute of "<form_element_name>_error." Therefore, as a convenience (hopefully), "_error" will be appended to all form elements in the errors map when searching for a span element to inject the error into.
 
 ### Example Usage:
 
